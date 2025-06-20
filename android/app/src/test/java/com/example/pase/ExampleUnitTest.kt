@@ -1,4 +1,4 @@
-package com.example.paso
+package com.example.pase
 
 import org.junit.Test
 

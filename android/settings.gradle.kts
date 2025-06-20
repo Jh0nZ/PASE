@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "PASO"
+rootProject.name = "PASE"
 include(":app")
