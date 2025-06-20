@@ -1,10 +1,5 @@
 {
-  "builds": [
-    {
-      "src": "api/index.go",
-      "use": "@vercel/go"
-    }
-  ],
+  "version": 2,
   "routes": [
     {
       "src": "/(.*)",
@@ -13,5 +8,10 @@
   ],
   "env": {
     "GO_VERSION": "1.24"
+  },
+  "functions": {
+    "api/index.go": {
+      "maxDuration": 10
+    }
   }
 }

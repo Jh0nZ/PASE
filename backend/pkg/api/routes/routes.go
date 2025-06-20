@@ -2,8 +2,8 @@ package routes
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/Jh0nZ/PASE/backend/internal/api/handlers"
-	"github.com/Jh0nZ/PASE/backend/internal/api/middleware"
+	"github.com/Jh0nZ/PASE/backend/pkg/api/handlers"
+	"github.com/Jh0nZ/PASE/backend/pkg/api/middleware"
 )
 
 func SetupRoutes(app *fiber.App) {

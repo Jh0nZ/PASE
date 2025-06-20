@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/Jh0nZ/PASE/backend/internal/api/routes"
+	"github.com/Jh0nZ/PASE/backend/pkg/api/routes"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 )
