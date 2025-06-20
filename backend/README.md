@@ -18,7 +18,7 @@ backend
 ├── pkg
 │   └── errors               # Custom error handling
 ├── docs
-│   └── api.md              # API documentation
+│   └── api.md               # API documentation
 ├── .env                     # Environment variables
 ├── .gitignore               # Git ignore file
 ├── .air.toml                # Air configuration for hot reload
@@ -43,7 +43,7 @@ backend
 ### Installation
 1. **Clone the repository**:
    ```sh
-   git clone <repository-url>
+   git clone https://github.com/Jh0nZ/PASE.git
    cd backend
    ```
 

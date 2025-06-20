@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"github.com/Jh0nZ/PASE/backend/internal/api/routes"
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
@@ -16,6 +17,11 @@ func main() {
 
 	routes.SetupRoutes(app)
 
-	log.Printf("Servidor iniciado en puerto %s", "8080")
-	log.Fatal(app.Listen(":8080"))
+	port := os.Getenv("PORT")
+    if port == "" {
+        port = "8080"
+    }
+	
+    log.Printf("🚀 Servidor iniciado en puerto %s", port)
+    log.Fatal(app.Listen(":" + port))
 }
