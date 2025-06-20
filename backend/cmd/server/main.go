@@ -1,16 +1,18 @@
 package main
 
 import (
+	"github.com/Jh0nZ/PASE/backend/internal/api/routes"
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
 	"log"
-	"github.com/Jh0nZ/PASE/backend/internal/api/routes"
 )
 
 func main() {
 	_ = godotenv.Load()
 
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		AppName: "PASE API",
+	})
 
 	routes.SetupRoutes(app)
 
