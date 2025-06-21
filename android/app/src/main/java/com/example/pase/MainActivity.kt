@@ -8,21 +8,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.pase.ui.theme.PASETheme
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -88,7 +86,7 @@ sealed class NavDestination(
     val content: @Composable () -> Unit
 ) {
     object Main : NavDestination("Main", Icons.Default.Home, { MainPage() })
-    object Page2 : NavDestination("Page 2", Icons.Default.Star, { Page2() })
+    object Page2 : NavDestination("Validacion", Icons.Default.CheckCircle, { com.example.pase.ui.theme.Page2() })
     object Page3 : NavDestination("Page 3", Icons.Default.Favorite, { Page3() })
     object Page4 : NavDestination("Page 4", Icons.Default.Person, { Page4() })
 }
@@ -108,13 +106,6 @@ fun MainPage() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text("texto en columna")
-    }
-}
-
-@Composable
-fun Page2() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Page 2")
     }
 }
 
