@@ -1,4 +1,4 @@
-package com.example.pase.ui.theme
+package com.example.pase.view.theme
 
 import androidx.compose.ui.graphics.Color
 
