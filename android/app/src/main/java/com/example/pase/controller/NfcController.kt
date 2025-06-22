@@ -17,7 +17,8 @@ class NfcController(private val activity: Activity) {
     private val _nfcState = mutableStateOf(
         NfcState(
             isNfcAvailable = nfcAdapter != null,
-            isNfcEnabled = nfcAdapter?.isEnabled == true
+            isNfcEnabled = nfcAdapter?.isEnabled == true,
+            statusMessage = "Esperando tarjeta NFC..."
         )
     )
     val nfcState: MutableState<NfcState> = _nfcState
@@ -48,7 +49,7 @@ class NfcController(private val activity: Activity) {
             val id = it.id
             if (id == null || id.isEmpty()) {
                 Log.w("NfcProcessing", "NFC Tag ID is null or empty.")
-                updateNfcState("Error: NFC Tag ID is invalid.", hasError = true)
+                updateNfcState("Error: ID de tarjeta NFC inválido", hasError = true)
                 return
             }
 
@@ -68,7 +69,7 @@ class NfcController(private val activity: Activity) {
                                 content = content,
                                 parsedData = validationResult.cardData
                             )
-                            updateNfcState(formatCardDisplay(validationResult.cardData!!), tagInfo = tagInfo)
+                            updateNfcState("Tarjeta leída correctamente", tagInfo = tagInfo)
                         } else {
                             val tagInfo = NfcTagInfo(
                                 id = hexId,
@@ -101,11 +102,12 @@ class NfcController(private val activity: Activity) {
                     hasError = true,
                     errorMessage = e.message
                 )
+                Log.d("NfcProcessing", "Error reading NDEF message: ${e.message} for tag ID: $tagInfo")
                 updateNfcState("Error leyendo contenido: ${e.message}", tagInfo = tagInfo, hasError = true)
             }
         } ?: run {
             Log.w("NfcProcessing", "NFC Tag not found in intent.")
-            updateNfcState("Error: NFC Tag not found.", hasError = true)
+            updateNfcState("Error: Tarjeta NFC no encontrada", hasError = true)
         }
     }
 
@@ -141,7 +143,7 @@ class NfcController(private val activity: Activity) {
         _nfcState.value = NfcState(
             isNfcAvailable = nfcAdapter != null,
             isNfcEnabled = nfcAdapter?.isEnabled == true,
-            statusMessage = "Waiting for NFC tag..."
+            statusMessage = "Esperando tarjeta NFC..."
         )
     }
 
@@ -151,11 +153,11 @@ class NfcController(private val activity: Activity) {
         if (parts.size != 5) {
             return CardValidationResult(
                 isValid = false,
-                errorMessage = "Formato inválido. Se esperan 5 campos separados por comas: id,nombre,saldo,tipo de usuario,fecha expiracion"
+                errorMessage = "Formato inválido. Se esperan 5 campos separados por comas: id,nombre,tipoUsuario,saldo,fechaExpiracion"
             )
         }
 
-        val (cardId, nombre, saldo, tipoUsuario, fechaExpiracion) = parts.map { it.trim() }
+        val (cardId, nombre, tipoUsuario, saldo, fechaExpiracion) = parts.map { it.trim() }
 
         // Validar que ningún campo esté vacío
         if (cardId.isEmpty() || nombre.isEmpty() || saldo.isEmpty() || 
@@ -163,6 +165,16 @@ class NfcController(private val activity: Activity) {
             return CardValidationResult(
                 isValid = false,
                 errorMessage = "Todos los campos son obligatorios"
+            )
+        }
+
+        // Validar formato de saldo (debe ser numérico)
+        try {
+            saldo.toDouble()
+        } catch (e: NumberFormatException) {
+            return CardValidationResult(
+                isValid = false,
+                errorMessage = "El saldo debe ser un número válido"
             )
         }
 
@@ -178,16 +190,6 @@ class NfcController(private val activity: Activity) {
             isValid = true,
             cardData = cardData
         )
-    }
-
-    private fun formatCardDisplay(cardData: NfcCardData): String {
-        return """
-            ID: ${cardData.cardId}
-            Nombre: ${cardData.nombre}
-            Saldo: ${cardData.saldo}
-            Tipo de Usuario: ${cardData.tipoUsuario}
-            Fecha Expiración: ${cardData.fechaExpiracion}
-        """.trimIndent()
     }
 
     private data class CardValidationResult(
