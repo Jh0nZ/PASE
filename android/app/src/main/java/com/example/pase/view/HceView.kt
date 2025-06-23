@@ -6,13 +6,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.unit.dp
 import com.example.pase.model.FakeCardRepository
 import com.example.pase.model.NfcCardData
 import com.example.pase.service.EmulationBuffer
+import com.example.pase.view.components.NfcCard
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 
 @Composable
 fun HceView() {
@@ -22,32 +24,32 @@ fun HceView() {
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Selecciona una tarjeta para emular", style = MaterialTheme.typography.titleLarge)
+        Text(
+            text = if (selectedCard != null)
+                "Emulando tarjeta de: ${selectedCard!!.nombre}"
+            else
+                "Selecciona una tarjeta para emular",
+            style = MaterialTheme.typography.titleLarge
+        )
 
-        FakeCardRepository.tarjetas.forEach { tarjeta ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        selectedCard = tarjeta
-                        EmulationBuffer.cardData = tarjeta
-                    },
-                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
-            ) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    Text("Nombre: ${tarjeta.nombre}")
-                    Text("Tipo: ${tarjeta.tipoUsuario}")
-                    Text("Saldo: ${tarjeta.saldo}")
-                    Text("Expira: ${tarjeta.fechaExpiracion}")
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(FakeCardRepository.tarjetas) { tarjeta ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            selectedCard = tarjeta
+                            EmulationBuffer.cardData = tarjeta
+                        }
+                ) {
+                    NfcCard(cardData = tarjeta)
                 }
             }
-        }
-
-        if (selectedCard != null) {
-            Text("Tarjeta seleccionada: ${selectedCard!!.nombre}", color = MaterialTheme.colorScheme.primary)
         }
     }
 }

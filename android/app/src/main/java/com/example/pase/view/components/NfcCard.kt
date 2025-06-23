@@ -43,19 +43,18 @@ import androidx.compose.ui.unit.sp
 import com.example.pase.model.NfcCardData
 
 @Composable
-fun NfcCard(cardData: NfcCardData) {
+fun NfcCard(cardData: NfcCardData, modifier: Modifier = Modifier) {
     var isSaldoVisible by remember { mutableStateOf(false) }
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(260.dp),
+        modifier = modifier
+            .fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         shape = RoundedCornerShape(16.dp)
     ) {
         Box(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .background(
                     brush = Brush.horizontalGradient(
                         colors = listOf(
@@ -64,10 +63,10 @@ fun NfcCard(cardData: NfcCardData) {
                         )
                     )
                 )
-                .padding(20.dp)
+                .padding(16.dp)
         ) {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 // Header
@@ -76,29 +75,30 @@ fun NfcCard(cardData: NfcCardData) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "PASE Card",
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row (
+                        modifier = Modifier.weight(9f),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Text(
+                            text = "PASE",
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = cardData.cardId,
+                            color = Color.White.copy(alpha = 0.8f),
+                            fontSize = 10.sp,
+                        )
+                    }
+
                     Icon(
                         imageVector = Icons.Default.CreditCard,
                         contentDescription = "Card",
                         tint = Color.White,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(32.dp).weight(1f)
                     )
                 }
-
-                // Card ID
-                Text(
-                    text = cardData.cardId,
-                    color = Color.White,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Medium,
-                    letterSpacing = 2.sp
-                )
-
                 // Card Info
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     CardInfoRow(
