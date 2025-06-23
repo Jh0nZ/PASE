@@ -186,7 +186,7 @@ fun NfcView() {
 /**
  * Verifica si la tarjeta es válida comparando su fecha de expiración con la fecha actual
  */
-private fun isCardValid(expirationDateStr: String): Boolean {
+fun isCardValid(expirationDateStr: String): Boolean {
     try {
         // Asumimos que la fecha viene en formato "dd/MM/yyyy"
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
