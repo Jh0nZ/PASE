@@ -4,7 +4,16 @@ data class NfcTagInfo(
     val id: String,
     val content: String? = null,
     val hasError: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val parsedData: NfcCardData? = null
+)
+
+data class NfcCardData(
+    val cardId: String,
+    val nombre: String,
+    val saldo: String,
+    val tipoUsuario: String,
+    val fechaExpiracion: String
 )
 
 data class NfcState(

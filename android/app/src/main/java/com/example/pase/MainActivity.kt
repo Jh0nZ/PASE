@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.example.pase.ui.theme.PASETheme
+import com.example.pase.view.theme.PASETheme
 import com.example.pase.view.MainPageView
 import com.example.pase.view.NavigationView
 import com.example.pase.view.NfcView
