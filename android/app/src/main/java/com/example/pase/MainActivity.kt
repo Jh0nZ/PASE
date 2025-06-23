@@ -19,11 +19,9 @@ class MainActivity : ComponentActivity() {
             PASETheme {
                 NavigationView { route ->
                     when (route) {
-                        "main" -> MainPageView()
-                        "validation" -> NfcView()
-                        "page3" -> HceView()
-                        "page4" -> Page4View()
-                        else -> MainPageView()
+                        "Validar" -> NfcView()
+                        "Emular" -> HceView()
+                        else -> NfcView()
                     }
                 }
             }

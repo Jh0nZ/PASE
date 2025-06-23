@@ -3,6 +3,7 @@ package com.example.pase.model
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.FactCheck
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.FactCheck
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
@@ -18,9 +19,7 @@ data class NavigationItem(
 
 object NavigationData {
     val items = listOf(
-        NavigationItem("Main", Icons.Default.Home, "main"),
-        NavigationItem("Validacion", Icons.Default.CheckCircle, "validation"),
-        NavigationItem("HCE", Icons.Default.Favorite, "page3"),
-        NavigationItem("Page 4", Icons.Default.Person, "page4")
+        NavigationItem("Validar", Icons.Default.CheckCircle, "validation"),
+        NavigationItem("Emular", Icons.Default.CreditCard, "Emular"),
     )
 }
