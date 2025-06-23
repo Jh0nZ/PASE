@@ -8,7 +8,7 @@ import com.example.pase.view.theme.PASETheme
 import com.example.pase.view.MainPageView
 import com.example.pase.view.NavigationView
 import com.example.pase.view.NfcView
-import com.example.pase.view.Page3View
+import com.example.pase.view.HceView
 import com.example.pase.view.Page4View
 
 class MainActivity : ComponentActivity() {
@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
                     when (route) {
                         "main" -> MainPageView()
                         "validation" -> NfcView()
-                        "page3" -> Page3View()
+                        "page3" -> HceView()
                         "page4" -> Page4View()
                         else -> MainPageView()
                     }
