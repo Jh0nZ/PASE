@@ -86,7 +86,7 @@ class NfcController(private val activity: Activity) {
                     Log.d("NfcController", "Contenido de la tarjeta: $content")
                     val parts = content.split(",")
                     if (parts.size == 5) {
-                        val (cardId, nombre, saldoRaw, tipoUsuario, fechaExpiracion) = parts.map { it.trim() }
+                        val (cardId, nombre, tipoUsuario, saldoRaw, fechaExpiracion) = parts.map { it.trim() }
                         // Remove non-numeric characters (except dot and minus)
                         val saldo = saldoRaw.replace(Regex("[^\\d.-]"), "")
                         try {
