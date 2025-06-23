@@ -9,19 +9,20 @@ class CardService : HostApduService() {
     override fun processCommandApdu(commandApdu: ByteArray?, extras: Bundle?): ByteArray {
         val card = EmulationBuffer.cardData
 
-        val response = if (card != null) {
-            val content = "${card.nombre},${card.tipoUsuario},${card.saldo}"
-            Log.d("CardService", "Respondiendo con: $content")
-            content.toByteArray() + byteArrayOf(0x90.toByte(), 0x00.toByte())
-        } else {
-            Log.d("CardService", "Sin tarjeta seleccionada")
-            "SIN TARJETA".toByteArray() + byteArrayOf(0x6A.toByte(), 0x82.toByte()) // SW_FILE_NOT_FOUND
+        if (card == null) {
+            Log.d("CardService", "No hay tarjeta seleccionada para emular")
+            return byteArrayOf(0x6A.toByte(), 0x82.toByte()) // SW_FILE_NOT_FOUND
         }
 
-        return response
+        val message = "${card.cardId},${card.nombre},${card.tipoUsuario},${card.saldo},${card.fechaExpiracion}"
+        Log.d("CardService", "Tarjeta emulada: $message")
+
+        val responseData = message.toByteArray(Charsets.UTF_8)
+        val statusWord = byteArrayOf(0x90.toByte(), 0x00.toByte()) // SW_SUCCESS
+        return responseData + statusWord
     }
 
     override fun onDeactivated(reason: Int) {
-        Log.d("CardService", "Servicio HCE desactivado. Razón: $reason")
+        Log.d("CardService", "Emulación desactivada. Razón: $reason")
     }
 }
