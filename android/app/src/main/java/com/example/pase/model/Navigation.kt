@@ -19,8 +19,8 @@ data class NavigationItem(
 object NavigationData {
     val items = listOf(
         NavigationItem("Main", Icons.Default.Home, "main"),
-        NavigationItem("Validacion", Icons.AutoMirrored.Filled.FactCheck, "validation"),
-        NavigationItem("Page 3", Icons.Default.Favorite, "page3"),
+        NavigationItem("Validacion", Icons.Default.CheckCircle, "validation"),
+        NavigationItem("HCE", Icons.Default.Favorite, "page3"),
         NavigationItem("Page 4", Icons.Default.Person, "page4")
     )
 }
