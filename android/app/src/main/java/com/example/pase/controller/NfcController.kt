@@ -5,7 +5,10 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.nfc.NfcAdapter
 import android.nfc.Tag
+import android.nfc.tech.IsoDep
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import com.example.pase.model.NfcCardData
@@ -22,6 +25,11 @@ class NfcController(private val activity: Activity) {
         )
     )
     val nfcState: MutableState<NfcState> = _nfcState
+
+    private val SELECT_APDU = byteArrayOf(
+        0x00.toByte(), 0xA4.toByte(), 0x04.toByte(), 0x00.toByte(), 0x05.toByte(),
+        0xF2.toByte(), 0x22.toByte(), 0x22.toByte(), 0x22.toByte(), 0x22.toByte()
+    )
 
     private val pendingIntent = PendingIntent.getActivity(
         activity, 0,
@@ -42,100 +50,77 @@ class NfcController(private val activity: Activity) {
         nfcAdapter?.disableForegroundDispatch(activity)
     }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     fun processNfcIntent(intent: Intent) {
-        val tag: Tag? = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag::class.java)
-
-        tag?.let {
-            val id = it.id
-            if (id == null || id.isEmpty()) {
-                Log.w("NfcProcessing", "NFC Tag ID is null or empty.")
-                updateNfcState("Error: ID de tarjeta NFC inválido", hasError = true)
-                return
-            }
-
-            val hexId = id.joinToString("") { byte -> "%02X".format(byte) }
-
-            try {
-                val rawMsgs = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES)
-                if (rawMsgs != null) {
-                    val messages = rawMsgs.map { it as android.nfc.NdefMessage }
-                    val content = extractTextContent(messages)
-                    
-                    if (content != null) {
-                        val validationResult = validateCardFormat(content)
-                        if (validationResult.isValid) {
-                            val tagInfo = NfcTagInfo(
-                                id = hexId,
-                                content = content,
-                                parsedData = validationResult.cardData
-                            )
-                            updateNfcState("Tarjeta leída correctamente", tagInfo = tagInfo)
-                        } else {
-                            val tagInfo = NfcTagInfo(
-                                id = hexId,
-                                content = content,
-                                hasError = true,
-                                errorMessage = validationResult.errorMessage
-                            )
-                            updateNfcState("Error: ${validationResult.errorMessage}", tagInfo = tagInfo, hasError = true)
-                        }
-                    } else {
-                        val tagInfo = NfcTagInfo(
-                            id = hexId,
-                            hasError = true,
-                            errorMessage = "No se encontró contenido de texto en la tarjeta"
-                        )
-                        updateNfcState("Error: No se encontró contenido de texto", tagInfo = tagInfo, hasError = true)
-                    }
-                } else {
-                    val tagInfo = NfcTagInfo(
-                        id = hexId,
-                        hasError = true,
-                        errorMessage = "No se encontraron mensajes NDEF"
-                    )
-                    updateNfcState("Error: No se encontraron mensajes NDEF", tagInfo = tagInfo, hasError = true)
-                }
-            } catch (e: Exception) {
-                Log.e("NfcProcessing", "Error reading NDEF message", e)
-                val tagInfo = NfcTagInfo(
-                    id = hexId,
-                    hasError = true,
-                    errorMessage = e.message
-                )
-                Log.d("NfcProcessing", "Error reading NDEF message: ${e.message} for tag ID: $tagInfo")
-                updateNfcState("Error leyendo contenido: ${e.message}", tagInfo = tagInfo, hasError = true)
-            }
-        } ?: run {
-            Log.w("NfcProcessing", "NFC Tag not found in intent.")
-            updateNfcState("Error: Tarjeta NFC no encontrada", hasError = true)
+        if (intent.action in listOf(
+                NfcAdapter.ACTION_TECH_DISCOVERED,
+                NfcAdapter.ACTION_TAG_DISCOVERED
+            )
+        ) {
+            processTag(intent)
         }
     }
 
-    private fun extractTextContent(messages: List<android.nfc.NdefMessage>): String? {
-        for (message in messages) {
-            for (record in message.records) {
-                if (record.tnf == android.nfc.NdefRecord.TNF_WELL_KNOWN &&
-                    record.type.contentEquals(android.nfc.NdefRecord.RTD_TEXT)) {
-
-                    val payload = record.payload
-                    val textEncoding = if ((payload[0].toInt() and 128) == 0) "UTF-8" else "UTF-16"
-                    val languageCodeLength = payload[0].toInt() and 0x3F
-
-                    return String(
-                        payload, languageCodeLength + 1,
-                        payload.size - languageCodeLength - 1,
-                        charset(textEncoding)
-                    )
-                }
-            }
+    private fun processTag(intent: Intent) {
+        val tag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)
         }
-        return null
+
+        if (tag == null) {
+            updateNfcState("Error: No se detectó ninguna etiqueta NFC", hasError = true)
+            return
+        }
+
+        val hexId = tag.id.joinToString("") { byte -> "%02X".format(byte) }
+        val isoDep = IsoDep.get(tag)
+        if (isoDep != null) {
+            try {
+                isoDep.connect()
+                val response = isoDep.transceive(SELECT_APDU)
+                if (response != null && response.size > 2) {
+                    val data = response.copyOfRange(0, response.size - 2)
+                    val content = String(data)
+                    Log.d("NfcController", "Contenido de la tarjeta: $content")
+                    val parts = content.split(",")
+                    if (parts.size == 5) {
+                        val (cardId, nombre, saldoRaw, tipoUsuario, fechaExpiracion) = parts.map { it.trim() }
+                        // Remove non-numeric characters (except dot and minus)
+                        val saldo = saldoRaw.replace(Regex("[^\\d.-]"), "")
+                        try {
+                            saldo.toDouble()
+                            val cardData = NfcCardData(cardId, nombre, saldo, tipoUsuario, fechaExpiracion)
+                            val tagInfo = NfcTagInfo(
+                                id = hexId,
+                                content = content,
+                                parsedData = cardData
+                            )
+                            updateNfcState("Tarjeta leída correctamente", tagInfo = tagInfo)
+                        } catch (e: NumberFormatException) {
+                            updateNfcState("Error: saldo inválido", hasError = true)
+                        }
+                    } else {
+                        updateNfcState("Error: Formato inválido, se esperaban 5 campos", hasError = true)
+                    }
+                } else {
+                    updateNfcState("Error: No se recibieron datos", hasError = true)
+                }
+            } catch (e: Exception) {
+                updateNfcState("Error leyendo tarjeta: ${e.message}", hasError = true)
+            } finally {
+                try { isoDep.close() } catch (_: Exception) {}
+            }
+        } else {
+            updateNfcState("La tarjeta no soporta ISO-DEP", hasError = true)
+        }
     }
 
     private fun updateNfcState(statusMessage: String, tagInfo: NfcTagInfo? = null, hasError: Boolean = false) {
         _nfcState.value = _nfcState.value.copy(
             statusMessage = statusMessage,
-            tagInfo = tagInfo
+            tagInfo = tagInfo,
         )
     }
 
@@ -146,55 +131,4 @@ class NfcController(private val activity: Activity) {
             statusMessage = "Esperando tarjeta NFC..."
         )
     }
-
-    private fun validateCardFormat(content: String): CardValidationResult {
-        val parts = content.split(",")
-        
-        if (parts.size != 5) {
-            return CardValidationResult(
-                isValid = false,
-                errorMessage = "Formato inválido. Se esperan 5 campos separados por comas: id,nombre,tipoUsuario,saldo,fechaExpiracion"
-            )
-        }
-
-        val (cardId, nombre, tipoUsuario, saldo, fechaExpiracion) = parts.map { it.trim() }
-
-        // Validar que ningún campo esté vacío
-        if (cardId.isEmpty() || nombre.isEmpty() || saldo.isEmpty() || 
-            tipoUsuario.isEmpty() || fechaExpiracion.isEmpty()) {
-            return CardValidationResult(
-                isValid = false,
-                errorMessage = "Todos los campos son obligatorios"
-            )
-        }
-
-        // Validar formato de saldo (debe ser numérico)
-        try {
-            saldo.toDouble()
-        } catch (e: NumberFormatException) {
-            return CardValidationResult(
-                isValid = false,
-                errorMessage = "El saldo debe ser un número válido"
-            )
-        }
-
-        val cardData = NfcCardData(
-            cardId = cardId,
-            nombre = nombre,
-            saldo = saldo,
-            tipoUsuario = tipoUsuario,
-            fechaExpiracion = fechaExpiracion
-        )
-
-        return CardValidationResult(
-            isValid = true,
-            cardData = cardData
-        )
-    }
-
-    private data class CardValidationResult(
-        val isValid: Boolean,
-        val cardData: NfcCardData? = null,
-        val errorMessage: String? = null
-    )
 }
