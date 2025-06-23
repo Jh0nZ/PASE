@@ -22,3 +22,8 @@ data class NfcState(
     val tagInfo: NfcTagInfo? = null,
     val statusMessage: String = "Waiting for NFC tag..."
 )
+
+fun NfcCardData.toApduResponse(): ByteArray {
+    val responseString = "ID:$cardId;N:$nombre;S:$saldo;T:$tipoUsuario;F:$fechaExpiracion"
+    return responseString.toByteArray(Charsets.UTF_8)
+}
